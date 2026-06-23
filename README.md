@@ -112,6 +112,9 @@ docs/edge-security-cloudfront-waf.md
 
 docs/karpenter-capacity-flow.md
   Optional Karpenter ON_DEMAND/SPOT capacity validation model.
+
+docs/foundation-and-lightweight-landing-zone-strategy.md
+  Foundation-layer and lightweight Landing Zone strategy for multi-environment growth.
 ```
 
 ---
