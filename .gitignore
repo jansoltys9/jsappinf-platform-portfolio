@@ -1,0 +1,37 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Terraform/runtime sensitive files
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+backend.hcl
+backend*.conf
+crash.log
+.terraform/
+.terraform.lock.hcl
+
+# Secrets / credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.kubeconfig
+kubeconfig*
+.env
+.env.*
+*secret*
+*token*
+*password*
+credentials*
+aws-credentials*
+
+# Generated files
+*.zip
+*.tar
+*.tar.gz
+*.log
