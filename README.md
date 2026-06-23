@@ -11,6 +11,23 @@ The goal of this repository is to present a sanitized portfolio view of the proj
 
 The platform is built around AWS EKS and provisioned with Terraform.
 
+## Repository Model
+
+The real project is intentionally split across multiple repositories. This mirrors a production-like ownership model where infrastructure provisioning, application source code, Helm packaging and GitOps runtime configuration are separated.
+
+| Repository | Purpose | Public Portfolio Status |
+|---|---|---|
+| `terraform-modules` | Reusable Terraform modules such as VPC, EKS, RDS, ECR and supporting infrastructure modules. | Private real repo, described only. |
+| `jsappinf-platform` | Environment-level infrastructure composition, platform add-ons, component registry, IAM/IRSA, KMS, DNS, ingress and edge-security wiring. | Private real repo, described only. |
+| `JSAPP` | Node.js microservices source code for UI, user, product and order services. GitLab CI builds immutable images and pushes them to AWS ECR. | Private real repo, described only. |
+| `helmchartsappjs` | Helm charts for JSAPP services, including deployment, service, ingress and runtime configuration templates. | Private real repo, described only. |
+| `jsappinf-gitops` | ArgoCD desired runtime state, app-of-apps model, platform applications, ExternalSecrets and environment-specific deployment configuration. | Private real repo, described only. |
+| `jsappinf-platform-portfolio` | Sanitized public documentation repository for portfolio and LinkedIn presentation. It does not contain secrets, Terraform state, private credentials or sensitive account configuration. | Public portfolio repo. |
+
+The private repositories contain the real implementation. This public portfolio repository documents the architecture, workflows and decisions without exposing sensitive project data.
+
+---
+
 ## Documentation
 
 Detailed portfolio documentation is available in the `docs/` directory.
