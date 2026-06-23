@@ -28,6 +28,65 @@ The private repositories contain the real implementation. This public portfolio 
 
 ---
 
+## GitLab vs GitHub Publication Model
+
+The real implementation repositories are kept private in GitLab.
+
+GitLab is used as the primary working platform for:
+
+```text
+real infrastructure code
+real application source code
+real Helm charts
+real GitOps manifests
+real CI/CD pipelines
+private project history
+```
+
+The public GitHub repository is intentionally sanitized and documentation-focused.
+
+GitHub is used as the public portfolio layer for:
+
+```text
+architecture overview
+repository ownership model
+GitOps deployment flow
+secrets delivery model
+multi-environment strategy
+edge security design
+capacity planning notes
+LinkedIn Featured project link
+```
+
+This separation is intentional.
+
+```text
+GitLab:
+  private implementation and day-to-day engineering work
+
+GitHub:
+  public portfolio documentation without sensitive data
+```
+
+The public repository does not include:
+
+```text
+Terraform state
+backend configuration
+tfvars files
+private credentials
+tokens
+real secret values
+AWS account-specific identifiers
+private pipeline variables
+sensitive GitOps repository secrets
+```
+
+This allows the project to be presented publicly while keeping the real implementation and operational details protected.
+
+---
+
+
 ## Documentation
 
 Detailed portfolio documentation is available in the `docs/` directory.
