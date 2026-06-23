@@ -323,25 +323,130 @@ This prevents accidental reuse of dev credentials in stage or prod-sim.
 
 ---
 
-## DNS by Environment
+## DNS and Public Routing by Environment
 
-Possible DNS model:
+The current lab model may expose individual services through separate hostnames because it is useful for learning, testing and troubleshooting.
+
+Current lab/debug model:
+
+```text
+ui.jsapp365.com
+user.jsapp365.com
+product.jsapp365.com
+order.jsapp365.com
+```
+
+This model is practical during early development because every service can be tested directly.
+
+However, the target production-like model should not expose every small backend microservice as a separate public DNS name.
+
+The cleaner target model is:
+
+```text
+one public product entrypoint
+path-based API routing
+microservices hidden behind the ingress layer
+```
+
+Recommended target DNS and routing model:
 
 ```text
 dev:
-  ui.dev.jsapp365.com
-  order.dev.jsapp365.com
+  dev.jsapp365.com
+  dev.jsapp365.com/api/users
+  dev.jsapp365.com/api/products
+  dev.jsapp365.com/api/orders
 
 stage:
-  ui.stage.jsapp365.com
-  order.stage.jsapp365.com
+  stage.jsapp365.com
+  stage.jsapp365.com/api/users
+  stage.jsapp365.com/api/products
+  stage.jsapp365.com/api/orders
 
-prod-sim:
-  ui.prod-sim.jsapp365.com
-  order.prod-sim.jsapp365.com
+prod / prod-like public:
+  jsapp365.com
+  jsapp365.com/api/users
+  jsapp365.com/api/products
+  jsapp365.com/api/orders
 ```
 
-A simpler temporary model can keep current hostnames for dev and introduce environment-specific subdomains later.
+Recommended production-like routing:
+
+```text
+jsapp365.com
+  -> frontend / UI
+
+jsapp365.com/api/users
+  -> user-service
+
+jsapp365.com/api/products
+  -> product-service
+
+jsapp365.com/api/orders
+  -> order-service
+```
+
+Recommended dev routing:
+
+```text
+dev.jsapp365.com
+  -> frontend / UI
+
+dev.jsapp365.com/api/users
+  -> user-service
+
+dev.jsapp365.com/api/products
+  -> product-service
+
+dev.jsapp365.com/api/orders
+  -> order-service
+```
+
+The production-like public domain should not expose labels such as `prod`, `prod-sim`, or similar environment markers in the user-facing hostname.
+
+Environment identity should be handled internally through:
+
+```text
+Terraform backend keys
+AWS accounts
+tags
+name prefixes
+secret paths
+ArgoCD environment configuration
+deployment namespaces
+```
+
+Microservices should remain an internal implementation detail.
+
+Internal Kubernetes service discovery can still use service-level DNS names such as:
+
+```text
+user-service.user-service.svc.cluster.local
+product-service.product-service.svc.cluster.local
+order-service.order-service.svc.cluster.local
+ui-service.ui-service.svc.cluster.local
+```
+
+Recommended evolution:
+
+```text
+Phase 1:
+  service-per-subdomain for lab testing and debugging
+
+Phase 2:
+  single dev entrypoint with /api path routing
+
+Phase 3:
+  single stage entrypoint with /api path routing
+
+Phase 4:
+  clean production-like public entrypoint
+
+Phase 5:
+  CloudFront + AWS WAF in front of clean public entrypoints
+```
+
+This keeps the current lab practical while showing a clear direction toward a more realistic public routing model.
 
 ---
 
