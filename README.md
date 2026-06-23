@@ -11,6 +11,36 @@ The goal of this repository is to present a sanitized portfolio view of the proj
 
 The platform is built around AWS EKS and provisioned with Terraform.
 
+## Documentation
+
+Detailed portfolio documentation is available in the `docs/` directory.
+
+```text
+docs/infrastructure-overview.md
+  High-level AWS, EKS, networking, platform add-ons and application architecture.
+
+docs/gitops-deployment-flow.md
+  GitLab CI, ECR, Helm, ArgoCD and Kubernetes rollout flow.
+
+docs/repository-ownership-model.md
+  Repository responsibility boundaries across Terraform, application code, Helm and GitOps.
+
+docs/secrets-flow.md
+  AWS Secrets Manager, External Secrets Operator and Kubernetes runtime secret delivery.
+
+docs/multi-env-and-account-strategy.md
+  Planned dev/stage/prod-like environment model and lightweight AWS account strategy.
+
+docs/edge-security-cloudfront-waf.md
+  CloudFront + AWS WAF edge security direction and clean public routing model.
+
+docs/karpenter-capacity-flow.md
+  Optional Karpenter ON_DEMAND/SPOT capacity validation model.
+```
+
+---
+
+
 It includes:
 
 ```text
