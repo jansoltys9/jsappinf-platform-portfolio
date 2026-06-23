@@ -35,3 +35,6 @@ aws-credentials*
 *.tar
 *.tar.gz
 *.log
+
+# Local-only working notes
+.work/
