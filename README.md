@@ -18,9 +18,9 @@ The real project is intentionally split across multiple repositories. This mirro
 | Repository | Purpose | Public Portfolio Status |
 |---|---|---|
 | `terraform-modules` | Reusable Terraform modules such as VPC, EKS, RDS, ECR and supporting infrastructure modules. | Private real repo, described only. |
-| `jsappinf-platform` | Environment-level infrastructure composition, platform add-ons, component registry, IAM/IRSA, KMS, DNS, ingress and edge-security wiring. | Private real repo, described only. |
-| `JSAPP` | Node.js microservices source code for UI, user, product and order services. GitLab CI builds immutable images and pushes them to AWS ECR. | Private real repo, described only. |
-| `helmchartsappjs` | Helm charts for JSAPP services, including deployment, service, ingress and runtime configuration templates. | Private real repo, described only. |
+| `jsappinf-platform` | Environment-level infrastructure composition, platform add-ons, component registry, IAM/IRSA, KMS, DNS, Gateway API, identity, database provisioning and edge-security wiring. | Private real repo, described only. |
+| `JSAPP` | Node.js microservices source code for UI, user, product and order services. GitLab CI builds immutable images and pushes them to AWS ECR. The application owns database contracts, publishers and consumers. | Private real repo, described only. |
+| `helmchartsappjs` | Reusable Helm charts for JSAPP services, including deployments, services, Gateway API routing, scheduling, probes and runtime configuration. | Private real repo, described only. |
 | `jsappinf-gitops` | ArgoCD desired runtime state, app-of-apps model, platform applications, ExternalSecrets and environment-specific deployment configuration. | Private real repo, described only. |
 | `jsappinf-platform-portfolio` | Sanitized public documentation repository for portfolio and LinkedIn presentation. It does not contain secrets, Terraform state, private credentials or sensitive account configuration. | Public portfolio repo. |
 
@@ -115,6 +115,15 @@ docs/karpenter-capacity-flow.md
 
 docs/foundation-and-lightweight-landing-zone-strategy.md
   Foundation-layer and lightweight Landing Zone strategy for multi-environment growth.
+
+docs/component-responsibility-matrix.md
+  Component ownership, repository boundaries, Terraform state ownership and lifecycle classification.
+
+docs/platform-architecture.md
+  Current validated AWS platform architecture, routing, identity, messaging, database and lifecycle design.
+
+docs/cross-cloud-platform-equivalence-strategy.md
+  AWS, Azure and Google Cloud equivalence strategy and portable platform boundaries.
 ```
 
 ---
@@ -128,12 +137,16 @@ AWS EKS
 Managed node groups
 AWS ECR
 AWS RDS PostgreSQL
+RDS application-provisioner Lambda
+RabbitMQ application messaging
+Amazon Cognito
 AWS Secrets Manager
 AWS KMS responsibility model
 Route 53 DNS
 cert-manager
 External Secrets Operator
-ingress-nginx
+AWS Load Balancer Controller
+Kubernetes Gateway API
 ArgoCD
 Helm-based application deployment
 GitLab CI/CD image build flow
@@ -168,7 +181,11 @@ Developer / Operator
   -> ArgoCD
   -> Helm applications
   -> JSAPP microservices
-  -> RDS PostgreSQL
+       |
+       +--> RDS PostgreSQL
+       +--> RabbitMQ messaging
+       +--> Secrets Manager through External Secrets
+       +--> Cognito identity and JWT contract
 ```
 
 Core platform components:
@@ -190,13 +207,26 @@ External Secrets Operator:
   syncs runtime secrets from AWS Secrets Manager into Kubernetes
 
 cert-manager:
-  manages TLS certificates
+  manages TLS certificates where required
 
-ingress-nginx:
-  exposes HTTP/HTTPS application routes
+AWS Load Balancer Controller:
+  provisions and manages the Application Load Balancer integration
+
+Kubernetes Gateway API:
+  defines Gateway and HTTPRoute application routing
 
 RDS PostgreSQL:
   provides application database persistence
+
+RDS application-provisioner Lambda:
+  creates or reconciles service users, schemas, grants and generated credentials
+
+RabbitMQ:
+  delivers the validated order.created event from order-service to product-service
+
+Amazon Cognito:
+  provides the validated identity infrastructure, PKCE flow and JWT contract;
+  direct UI and backend application integration remains planned
 
 ECR:
   stores immutable service container images
@@ -262,16 +292,20 @@ platform standards
 
 Raw secret values are not stored in GitOps manifests.
 
-The runtime secrets model is:
+The runtime database-secret model is:
 
 ```text
-Terraform / bootstrap process
-  -> AWS Secrets Manager
+Terraform
+  -> RDS application-provisioner Lambda
+  -> service database users, schemas and grants
+  -> generated credentials in AWS Secrets Manager
   -> External Secrets Operator
   -> Kubernetes Secret
-  -> Application pod environment variables
+  -> application pod environment variables
   -> RDS PostgreSQL login
 ```
+
+The provisioner owns database identities and permissions. Application migrations and seed jobs own tables, indexes and initial application data.
 
 Example application secret contract:
 
@@ -304,47 +338,65 @@ product-service  3001
 order-service    3002
 ```
 
-Validated service flow:
+Validated synchronous application capabilities:
 
 ```text
 Browser / UI
   -> ui-service
-  -> order-service
-  -> user-service
-  -> product-service
-  -> RDS PostgreSQL
+       |
+       +--> user-service
+       |      -> users schema
+       |
+       +--> product-service
+       |      -> products schema
+       |
+       +--> order-service
+              -> orders schema
 ```
 
-The application validates not only Kubernetes deployment, but also internal service discovery, database connectivity, runtime secrets, ingress routing, and end-to-end business flow.
+Validated asynchronous messaging flow:
+
+```text
+order-service
+  -> publishes order.created
+  -> RabbitMQ
+  -> product-service consumer
+```
+
+The application validates Kubernetes deployment, internal service discovery, database connectivity, runtime secret delivery, Gateway API routing and the core publisher-to-consumer messaging path.
 
 ---
 
 ## Edge Security Direction
 
-A CloudFront + AWS WAF edge security layer has been designed for the platform.
+A CloudFront + AWS WAF edge security layer has been designed and its infrastructure and cutover workflow have been validated.
 
-Target direction:
+Current target direction:
 
 ```text
 Internet
   -> CloudFront
   -> AWS WAF Web ACL
-  -> existing NLB
-  -> ingress-nginx
-  -> Kubernetes Ingress
+  -> Application Load Balancer
+  -> AWS Load Balancer Controller
+  -> Kubernetes Gateway API
+  -> HTTPRoute
   -> JSAPP services
 ```
+
+The previous NLB, ingress-nginx and Kubernetes Ingress path has been replaced by the ALB and Gateway API model.
 
 Current implementation status:
 
 ```text
-design documented
-component registry entry created
-Terraform skeleton prepared
-root wiring added in disabled mode
-enabled Terraform plan validated
-apply/testing intentionally deferred
+CloudFront and AWS WAF infrastructure implemented
+ALB origin integration validated
+edge cutover workflow validated
+Gateway API application routing validated
+long-running edge exposure disabled when not required
 ```
+
+The edge layer is intentionally cost-aware in the development environment. It can be enabled for validation and presentation without being kept active continuously.
 
 The initial WAF baseline is intentionally cost-aware:
 
@@ -431,9 +483,12 @@ ArgoCD GitOps
 GitLab CI/CD
 ECR image delivery
 RDS PostgreSQL integration
+RabbitMQ order.created publisher-to-consumer messaging
+RDS application identity and secret provisioning
 Secrets Manager and External Secrets Operator
+Cognito PKCE and JWT validation
 Route 53 DNS and TLS automation
-ingress-nginx routing
+ALB and Kubernetes Gateway API routing
 cost-aware environment lifecycle
 production-like architecture documentation
 operational troubleshooting
