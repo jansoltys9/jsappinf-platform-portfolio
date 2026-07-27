@@ -1,0 +1,36 @@
+# Normalize text files in the Git repository.
+* text=auto
+
+# Repository documentation and configuration use LF.
+*.md   text eol=lf
+*.txt  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+
+# Shell and automation files must use LF.
+*.sh   text eol=lf
+*.bash text eol=lf
+*.py   text eol=lf
+
+# Terraform files must use LF.
+*.tf      text eol=lf
+*.tfvars  text eol=lf
+*.hcl     text eol=lf
+
+# Keep Windows-specific scripts in CRLF.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary files must not be normalized.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.gz   binary

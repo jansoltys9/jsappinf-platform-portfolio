@@ -1,6 +1,6 @@
 # JSAPPINF – AWS EKS DevOps Platform Lab
 
-JSAPPINF is a production-like DevOps platform lab built on AWS EKS.  
+JSAPPINF is a production-like DevOps platform lab built on AWS EKS.
 The project demonstrates practical platform engineering work across infrastructure as code, Kubernetes, GitOps, secure secrets delivery, application deployment, ingress, TLS, database integration, and operational troubleshooting.
 
 The goal of this repository is to present a sanitized portfolio view of the project without exposing private credentials, Terraform state, environment-specific secrets, or sensitive account configuration.
@@ -219,7 +219,7 @@ Application source change
   -> Kubernetes rollout
 ```
 
-Applications are not manually deployed with `kubectl` as the main workflow.  
+Applications are not manually deployed with `kubectl` as the main workflow.
 The preferred workflow is Git-based and reconciled by ArgoCD.
 
 ---
