@@ -7,6 +7,12 @@ The goal of this repository is to present a sanitized portfolio view of the proj
 
 ---
 
+## Visual Platform Overview
+
+A visual guide to the platform infrastructure, repository landscape, deployment process, responsibility boundaries and application architecture is available here:
+
+[Open the JSAPP Platform Visual Overview](docs/visual-platform-overview.md)
+
 ## Project Summary
 
 The platform is built around AWS EKS and provisioned with Terraform.
