@@ -99,7 +99,7 @@ platform add-ons
 KMS responsibility model
 External Secrets integration
 cert-manager integration
-ingress-nginx installation
+AWS Load Balancer Controller installation through Terraform-managed Helm
 Karpenter integration
 component registry
 architecture decisions
@@ -163,7 +163,7 @@ Examples:
 ```text
 Deployment templates
 Service templates
-Ingress templates
+legacy optional Ingress templates (current HTTPRoutes live in GitOps)
 values.yaml
 container ports
 service ports
@@ -299,7 +299,7 @@ jsappinf-gitops change
 
 ## Portfolio Summary
 
-The repository ownership model shows that JSAPPINF is not only a running EKS lab, but also a structured platform engineering project.
+The repository ownership model describes a previously validated EKS lab and its source responsibilities. DEV runtime is currently OFF for cost control.
 
 The key design idea is:
 

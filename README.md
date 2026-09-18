@@ -17,6 +17,8 @@ A visual guide to the platform infrastructure, repository landscape, deployment 
 
 The platform is built around AWS EKS and provisioned with Terraform.
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads. The retained foundation includes VPC/subnets/routing, the S3 gateway endpoint, Terraform backend/state, selected KMS keys, ECR, Route 53, Cognito and repository credentials; it does not include the removed EKS, RDS, RabbitMQ broker, NAT gateway, interface endpoints or ALBs. This status is based on recorded source/operator evidence, not a new live inventory.
+
 ## Repository Model
 
 The real project is intentionally split across multiple repositories. This mirrors a production-like ownership model where infrastructure provisioning, application source code, Helm packaging and GitOps runtime configuration are separated.
@@ -26,7 +28,7 @@ The real project is intentionally split across multiple repositories. This mirro
 | `terraform-modules` | Reusable Terraform modules such as VPC, EKS, RDS, ECR and supporting infrastructure modules. | Private real repo, described only. |
 | `jsappinf-platform` | Environment-level infrastructure composition, platform add-ons, component registry, IAM/IRSA, KMS, DNS, Gateway API, identity, database provisioning and edge-security wiring. | Private real repo, described only. |
 | `JSAPP` | Node.js microservices source code for UI, user, product and order services. GitLab CI builds immutable images and pushes them to AWS ECR. The application owns database contracts, publishers and consumers. | Private real repo, described only. |
-| `helmchartsappjs` | Reusable Helm charts for JSAPP services, including deployments, services, Gateway API routing, scheduling, probes and runtime configuration. | Private real repo, described only. |
+| `helmchartsappjs` | Reusable Helm charts for JSAPP services, including deployments, services, legacy optional Ingress templates, scheduling, probes and runtime configuration. Current Gateway API routes live in GitOps. | Private real repo, described only. |
 | `jsappinf-gitops` | ArgoCD desired runtime state, app-of-apps model, platform applications, ExternalSecrets and environment-specific deployment configuration. | Private real repo, described only. |
 | `jsappinf-platform-portfolio` | Sanitized public documentation repository for portfolio and LinkedIn presentation. It does not contain secrets, Terraform state, private credentials or sensitive account configuration. | Public portfolio repo. |
 
@@ -107,7 +109,7 @@ docs/gitops-deployment-flow.md
 docs/repository-ownership-model.md
   Repository responsibility boundaries across Terraform, application code, Helm and GitOps.
 
-docs/secrets-flow.md
+docs/platform-architecture.md#7-secrets-architecture
   AWS Secrets Manager, External Secrets Operator and Kubernetes runtime secret delivery.
 
 docs/multi-env-and-account-strategy.md
@@ -126,7 +128,7 @@ docs/component-responsibility-matrix.md
   Component ownership, repository boundaries, Terraform state ownership and lifecycle classification.
 
 docs/platform-architecture.md
-  Current validated AWS platform architecture, routing, identity, messaging, database and lifecycle design.
+  AWS platform architecture, routing, identity, messaging, database and lifecycle design with validation boundaries.
 
 docs/cross-cloud-platform-equivalence-strategy.md
   AWS, Azure and Google Cloud equivalence strategy and portable platform boundaries.
@@ -232,7 +234,7 @@ RabbitMQ:
 
 Amazon Cognito:
   provides the validated identity infrastructure, PKCE flow and JWT contract;
-  direct UI and backend application integration remains planned
+  UI and backend integration exists in source; current-source live acceptance remains pending
 
 ECR:
   stores immutable service container images
@@ -313,7 +315,11 @@ Terraform
 
 The provisioner owns database identities and permissions. Application migrations and seed jobs own tables, indexes and initial application data.
 
-Example application secret contract:
+D01 source implementation, canonical integration and local validation are complete; live acceptance has not yet been performed. Verified PostgreSQL TLS uses an explicitly mounted RDS CA bundle and fails closed on missing or invalid trust.
+
+C01 immutable migration/seed generation and full-sync lifecycle gates are implemented in source. DEV remains OFF; current live execution is not claimed.
+
+Example database runtime contract (credentials from Secrets; TLS settings from workload configuration):
 
 ```text
 DB_HOST
@@ -321,6 +327,9 @@ DB_PORT
 DB_NAME
 DB_USER
 DB_PASSWORD
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=true
+DB_SSL_CA_FILE=/etc/ssl/db-ca/ca.pem
 ```
 
 Security principle:
@@ -391,6 +400,8 @@ Internet
 ```
 
 The previous NLB, ingress-nginx and Kubernetes Ingress path has been replaced by the ALB and Gateway API model.
+
+Gateway and HTTPRoute resources describe routing configuration; the AWS Load Balancer Controller reconciles that configuration into the ALB. They are not additional network hops in the request path.
 
 Current implementation status:
 

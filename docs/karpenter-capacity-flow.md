@@ -4,6 +4,8 @@ This document describes the optional Karpenter capacity model used in the JSAPPI
 
 Karpenter is treated as a validation and scaling component, not as something that must always run in the cost-aware dev profile.
 
+DEV runtime is currently OFF; the capacity profiles below describe operation when runtime is enabled.
+
 ---
 
 ## Purpose

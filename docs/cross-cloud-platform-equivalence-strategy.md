@@ -20,6 +20,8 @@ JSAPPINF Cross-Cloud Dev Platform Reference Architecture
 
 The current implementation is a close-to-production AWS development platform.
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+
 It includes:
 
 ```text
@@ -587,9 +589,9 @@ A user access token must not automatically become infrastructure credentials.
 ## Phase 1: AWS Reference Implementation
 
 ```text
-complete Cognito application integration
+validate current source-implemented Cognito application integration live
 expand RabbitMQ events, consumers and reliability controls
-finalize app/API routing
+revalidate the configured app/API routing when DEV is restored
 validate long-running CloudFront and WAF runtime path
 stabilize EKS platform baseline
 ```
@@ -844,7 +846,7 @@ failure ownership becomes unclear
 For JSAPPINF, the practical initial direction is:
 
 ```text
-AWS remains the first complete reference implementation.
+AWS remains the first reference implementation; current-source live acceptance is incomplete.
 
 Cognito remains the validated identity provider
 for the AWS reference implementation.
@@ -892,7 +894,7 @@ External Secrets delivery into Kubernetes
 ## Planned
 
 ```text
-Cognito integration into the AWS reference application
+live acceptance of the source-implemented Cognito integration in the AWS reference application
 provider-neutral JWT and authorization contracts
 configurable issuer, audience, JWKS and claim mapping
 automated database credential rotation

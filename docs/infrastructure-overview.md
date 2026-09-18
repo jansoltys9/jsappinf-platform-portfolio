@@ -4,6 +4,8 @@ JSAPPINF is a production-like DevOps platform lab built on AWS EKS.
 
 The platform is designed to demonstrate infrastructure provisioning, Kubernetes platform setup, GitOps deployment, secure secret delivery, ingress, TLS, database integration, and operational troubleshooting.
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+
 ---
 
 ## High-Level Architecture
@@ -57,7 +59,7 @@ Main platform components:
 ArgoCD
 External Secrets Operator
 cert-manager
-ingress-nginx
+AWS Load Balancer Controller and Gateway API
 Prometheus / Grafana
 optional Karpenter
 ```
@@ -77,7 +79,7 @@ product-service
 order-service
 ```
 
-The validated runtime flow is:
+The previously validated runtime flow is:
 
 ```text
 Browser / UI
@@ -106,9 +108,9 @@ External Secrets Operator synchronizes secrets from AWS Secrets Manager into Kub
 
 cert-manager automates TLS certificate management.
 
-### ingress-nginx
+### ALB and Gateway API
 
-ingress-nginx provides HTTP/HTTPS routing into Kubernetes services.
+The Terraform-managed AWS Load Balancer Controller reconciles GitOps Gateway and HTTPRoute resources into ALB routing to application Services.
 
 ### Karpenter
 
@@ -135,27 +137,22 @@ This keeps the environment practical while still demonstrating production-like p
 
 ## Edge Security Direction
 
-The planned edge security architecture is:
+The edge architecture implemented in source and previously validated is:
 
 ```text
 Internet
   -> CloudFront
   -> AWS WAF Web ACL
-  -> existing NLB
-  -> ingress-nginx
-  -> Kubernetes Ingress
+  -> Application Load Balancer (configured through Gateway API / HTTPRoute)
   -> JSAPP services
 ```
 
 Current status:
 
 ```text
-design documented
-component registry entry created
-Terraform skeleton prepared
-disabled root wiring added
-enabled Terraform plan validated
-apply/testing deferred intentionally
+CloudFront and AWS WAF infrastructure implemented
+ALB-origin integration and DNS cutover previously validated
+DEV runtime currently OFF; no current live acceptance implied
 ```
 
 ---

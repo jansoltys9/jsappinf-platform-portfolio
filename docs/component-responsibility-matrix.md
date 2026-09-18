@@ -22,6 +22,8 @@ The goal is to prevent unclear ownership, duplicated resources and Terraform sta
 
 The current matrix describes the close-to-production development platform implementation. The same ownership principles are intended to scale toward separate environments, Terraform states and AWS workload accounts.
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads. “Implemented and validated” below refers to historical runtime evidence, not acceptance of every change in the current source. D01 source/integration/local validation and C01 lifecycle source implementation are complete; current live acceptance/execution is not claimed.
+
 ---
 
 ## Ownership Principles
@@ -109,25 +111,25 @@ A persistent resource still requires one dedicated state owner.
 
 | Registry key / capability | Component | Terraform module owner | State / root-stack owner | Environment wiring | Helm owner | GitOps owner | Application owner | Runtime owner | Lifecycle | Current status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `vpc` | AWS VPC, subnets, routes, NAT and flow logs | `terraform-modules` | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — | — | — | Platform | Ephemeral | Implemented and validated |
+| `vpc` | AWS VPC, subnets, routes, NAT and flow logs | `terraform-modules` | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — | — | — | Platform | Retained foundation; NAT is ephemeral | Implemented and validated |
 | `eks` | Amazon EKS control plane and managed node groups | `terraform-modules` | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — | — | — | Platform | Ephemeral | Implemented and validated |
 | `ecr` | Application container registries | `terraform-modules` | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — | — | `JSAPP` publishes images | Platform | Persistent or low-cost | Implemented and validated |
 | `rds` | PostgreSQL database | `terraform-modules` | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | `helmchartsappjs` connection configuration | `jsappinf-gitops` secrets and runtime values | `JSAPP` schemas, queries and migrations | Shared platform/application | Ephemeral | Implemented and validated |
 | `rds-app-provisioner` | Lambda-based database user, schema, grant and secret provisioning | `jsappinf-platform` project module | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — | consumes generated Secrets Manager values through `jsappinf-gitops` | `JSAPP` defines required service database contracts | Shared platform/application | Pausable | Provisioning implemented and validated; automated credential rotation planned |
-| `aws-load-balancer-controller` | AWS Load Balancer Controller, IAM and IRSA | `jsappinf-platform` | `jsappinf-platform` infrastructure state plus Kubernetes runtime state | `jsappinf-platform` | upstream Helm chart with platform values | `jsappinf-gitops` | — | Platform | Ephemeral with EKS | Implemented and validated |
-| `gateway-api` | Gateway API resources and ALB routing | `jsappinf-platform` | Kubernetes runtime state reconciled by `jsappinf-gitops` | `jsappinf-platform` prerequisites | `helmchartsappjs` for reusable route shape | `jsappinf-gitops` | `JSAPP` services exposed through `helmchartsappjs` | Platform | Ephemeral with EKS | Implemented and validated |
-| `external-dns` | Route 53 DNS automation | `jsappinf-platform` | `jsappinf-platform` IAM state plus Kubernetes runtime state | `jsappinf-platform` | upstream Helm chart with platform values | `jsappinf-gitops` | — | Platform | Ephemeral with EKS | Implemented and validated |
-| `cert-manager` | Kubernetes certificate automation | `jsappinf-platform` | Kubernetes runtime state reconciled by `jsappinf-gitops` | `jsappinf-platform` prerequisites | upstream Helm chart with platform values | `jsappinf-gitops` | — | Platform | Ephemeral with EKS | Optional / currently disabled where not required |
-| `external-secrets` | External Secrets Operator and AWS integration | `jsappinf-platform` | `jsappinf-platform` IAM state plus Kubernetes runtime state | `jsappinf-platform` | upstream Helm chart with platform values | `jsappinf-gitops` owns ExternalSecret and SecretStore resources | `JSAPP` consumes injected values | Platform | Ephemeral with EKS | Implemented and validated |
-| `argocd` | GitOps reconciliation platform | `jsappinf-platform` | Kubernetes runtime state bootstrapped by `jsappinf-platform` | `jsappinf-platform` bootstrap | upstream ArgoCD Helm chart with platform values | `jsappinf-gitops` owns desired-state reconciliation | — | Platform | Ephemeral with EKS | Implemented and validated |
-| `karpenter` | Dynamic Kubernetes capacity | `jsappinf-platform` | `jsappinf-platform` IAM state plus Kubernetes runtime state | `jsappinf-platform` | upstream Helm chart plus platform NodePool templates | `jsappinf-gitops` | `helmchartsappjs` provides workload labels and scheduling requirements | Platform | Ephemeral | Implemented and validated as optional capacity model |
-| `rabbitmq` | Messaging platform capability | `jsappinf-platform` | `jsappinf-platform` infrastructure state or Kubernetes runtime state | `jsappinf-platform` | platform RabbitMQ packaging | `jsappinf-gitops` owns runtime application and environment values | `JSAPP` owns event schemas, publishers and consumers | Shared platform/application | Ephemeral | Infrastructure and core application messaging flow implemented and validated |
+| `aws-load-balancer-controller` | AWS Load Balancer Controller, IAM and IRSA | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` (IAM and Helm release) | `jsappinf-platform` | upstream Helm chart with platform values | `jsappinf-gitops` owns Gateway/HTTPRoute configuration, not the controller release | — | Platform | Ephemeral with EKS | Implemented and validated |
+| `gateway-api` | Gateway API resources and ALB routing | `jsappinf-platform` | Kubernetes runtime state reconciled by `jsappinf-gitops` | `jsappinf-platform` prerequisites | `helmchartsappjs` for Service packaging; routes are GitOps manifests | `jsappinf-gitops` | `JSAPP` services exposed through `helmchartsappjs` | Platform | Ephemeral with EKS | Implemented and validated |
+| `external-dns` | Route 53 DNS automation | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` (IAM and Helm release) | `jsappinf-platform` | upstream Helm chart with platform values | `jsappinf-gitops` owns selected route/DNS inputs, not the controller release | — | Platform | Ephemeral with EKS | Implemented and validated |
+| `cert-manager` | Kubernetes certificate automation | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` (Terraform-managed Helm release) | `jsappinf-platform` prerequisites | upstream Helm chart with platform values | Optional issuer manifests; controller release owned by Terraform | — | Platform | Ephemeral with EKS | Optional / currently disabled where not required |
+| `external-secrets` | External Secrets Operator and AWS integration | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` (IAM and Helm release) | `jsappinf-platform` | upstream Helm chart with platform values | `jsappinf-gitops` owns ExternalSecret and SecretStore resources | `JSAPP` consumes injected values | Platform | Ephemeral with EKS | Implemented and validated |
+| `argocd` | GitOps reconciliation platform | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` (Terraform-managed Helm release) | `jsappinf-platform` bootstrap | upstream ArgoCD Helm chart with platform values | `jsappinf-gitops` owns Applications and their desired state, not the ArgoCD release | — | Platform | Ephemeral with EKS | Implemented and validated |
+| `karpenter` | Dynamic Kubernetes capacity | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` (IAM, Helm release, NodePools and EC2NodeClass) | `jsappinf-platform` | upstream Helm chart plus platform NodePool templates | `jsappinf-gitops` owns workload placement values, not Karpenter capacity resources | `helmchartsappjs` provides workload labels and scheduling requirements | Platform | Ephemeral | Implemented and validated as optional capacity model |
+| `rabbitmq` | Amazon MQ for RabbitMQ | `jsappinf-platform` | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — (managed Amazon MQ broker) | `jsappinf-gitops` owns topology bootstrap and ExternalSecrets | `JSAPP` owns event schemas, publishers and consumers | Shared platform/application | Ephemeral | Infrastructure and core application messaging flow implemented and validated |
 | `edge-waf` | CloudFront and AWS WAF edge layer | `jsappinf-platform` project module | `jsappinf-platform/envs/dev/infra-next` | `jsappinf-platform` | — | — | — | Platform/security | Ephemeral in dev | Infrastructure and cutover workflow validated |
-| `amazon-cognito` | Cognito User Pool, app client, groups, resource server and domain | `jsappinf-platform/modules/identity/amazon-cognito` | `jsappinf-platform/envs/dev/identity-cognito` | dedicated identity root stack | `helmchartsappjs` public runtime configuration shape | `jsappinf-gitops` environment-specific public values | `JSAPP` UI login and backend JWT middleware | Shared identity/platform | Persistent | Infrastructure, PKCE and JWT validation complete; application integration planned |
+| `amazon-cognito` | Cognito User Pool, app client, groups, resource server and domain | `jsappinf-platform/modules/identity/amazon-cognito` | `jsappinf-platform/envs/dev/identity-cognito` | dedicated identity root stack | `helmchartsappjs` public runtime configuration shape | `jsappinf-gitops` environment-specific public values | `JSAPP` UI login and backend JWT middleware | Shared identity/platform | Persistent | Infrastructure, PKCE and JWT validation previously complete; application integration exists in source; current-source live acceptance pending |
 | `secrets-manager` | Runtime secret source | `terraform-modules` and `jsappinf-platform` project modules | owning `jsappinf-platform` infrastructure state | `jsappinf-platform` | `helmchartsappjs` secret-reference shape | `jsappinf-gitops` owns ExternalSecret definitions | `JSAPP` consumes secrets | Platform | Persistent with usage-based cost | Implemented and validated |
 | `kms` | Encryption responsibility and state/data keys | `terraform-modules` and `jsappinf-platform` project modules | owning `jsappinf-platform` infrastructure stack | `jsappinf-platform` | — | `jsappinf-gitops` contains references only | — | Platform/security | Persistent | Implemented according to component ownership |
 | `route53` | Public DNS records and zones | `terraform-modules` and `jsappinf-platform` project modules | owning `jsappinf-platform` or future foundation stack | `jsappinf-platform` | — | `jsappinf-gitops` through ExternalDNS for selected records | — | Platform | Persistent | Implemented and validated |
-| `ui-service` | Browser-facing Node.js service | — | ECR and infrastructure dependencies only | ECR, DNS and routing dependencies | `helmchartsappjs` | `jsappinf-gitops` | `JSAPP` | Application | Ephemeral runtime | Application runtime validated; Cognito integration planned |
+| `ui-service` | Browser-facing Node.js service | — | ECR and infrastructure dependencies only | ECR, DNS and routing dependencies | `helmchartsappjs` | `jsappinf-gitops` | `JSAPP` | Application | Ephemeral runtime | Application runtime previously validated; Cognito integration exists in source; current-source live acceptance pending |
 | `user-service` | User/profile application service | — | ECR and infrastructure dependencies only | ECR, database and secret dependencies | `helmchartsappjs` | `jsappinf-gitops` | `JSAPP` | Application | Ephemeral runtime | Application and database flow validated |
 | `product-service` | Product application service | — | ECR and infrastructure dependencies only | ECR, database, messaging and secret dependencies | `helmchartsappjs` | `jsappinf-gitops` | `JSAPP` | Application | Ephemeral runtime | Application, database flow and RabbitMQ consumer validated |
 | `order-service` | Order application service | — | ECR and infrastructure dependencies only | ECR, database, messaging and secret dependencies | `helmchartsappjs` | `jsappinf-gitops` | `JSAPP` | Application | Ephemeral runtime | Application, database flow and RabbitMQ publisher validated |
@@ -200,7 +202,7 @@ probes
 autoscaling
 scheduling configuration
 environment-variable templates
-Gateway API route templates where reusable
+Service templates; current Gateway API routes are owned by GitOps
 authentication configuration shape
 ```
 
@@ -290,10 +292,10 @@ AWS and IAM prerequisites:
 jsappinf-platform
 
 controller installation and configuration:
-platform Helm/GitOps configuration
+jsappinf-platform Terraform-managed Helm release
 
-reusable route template shape:
-helmchartsappjs where appropriate
+reusable Service template shape:
+helmchartsappjs; current Gateway/HTTPRoute manifests live in jsappinf-gitops
 
 environment hostnames and path rules:
 jsappinf-gitops
@@ -444,13 +446,15 @@ Portfolio documents should use the following terminology consistently.
 
 ### Implemented and validated
 
-The component was provisioned and tested in a running environment.
+The component was provisioned and tested in a running environment at the recorded revision. This is historical evidence, not proof that it is currently active or that newer source changes have live acceptance.
 
 ### Infrastructure validated
 
 The infrastructure component was created and technically verified, but application-level integration may still be incomplete.
 
 ### Prepared
+
+Source implementation and local validation can be complete while live acceptance remains pending; those evidence states must be stated separately.
 
 Terraform, Helm, GitOps or design foundations exist, but full runtime validation is not complete.
 

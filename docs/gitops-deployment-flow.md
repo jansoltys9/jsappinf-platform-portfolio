@@ -4,6 +4,8 @@ This document describes how application code becomes a running Kubernetes worklo
 
 The platform separates infrastructure provisioning from application delivery.
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+
 ```text
 Terraform creates the platform.
 GitLab CI builds application images.
@@ -38,7 +40,7 @@ ArgoCD
 EKS
   -> runs application namespaces
   -> runs services and pods
-  -> exposes applications through ingress-nginx
+  -> exposes applications through ALB routing configured by Gateway API
 ```
 
 ---
@@ -93,7 +95,7 @@ Owns Kubernetes application packaging.
 ```text
 Deployment templates
 Service templates
-Ingress templates
+legacy optional Ingress templates (current HTTPRoutes live in GitOps)
 values.yaml
 health probes
 service ports
@@ -158,7 +160,7 @@ ui-service
   -> RDS PostgreSQL
 ```
 
-The services are deployed into Kubernetes and connected through service DNS, environment variables, runtime secrets, and PostgreSQL-backed persistence.
+When runtime is enabled, services are deployed into Kubernetes and connected through service DNS, environment variables, runtime secrets, and PostgreSQL-backed persistence.
 
 ---
 
@@ -179,11 +181,17 @@ service source change
 
 Mutable `latest` image usage is avoided for application deployment stability.
 
+Source or artifact readiness, image publication, GitOps version selection and live promotion are separate evidence states. The committed release-preparation record retains historical pre-lockdown image selections and does not prove that newer images exist or were promoted. DEV is OFF; this document claims no currently running application versions.
+
 ---
 
 ## ArgoCD Role
 
 ArgoCD is responsible for reconciling the desired state from Git into the Kubernetes cluster.
+
+Terraform manages the ArgoCD, AWS Load Balancer Controller, ExternalDNS, External Secrets Operator, cert-manager and Karpenter Helm releases. GitOps owns the selected runtime resources and application desired state.
+
+C01 implements immutable, checksum-identified migrations and DEV seeds generated deterministically from JSAPP SQL. GitOps runs migrations, DEV fixture seeds and completion markers in order; each workload has a PreSync gate for the exact lifecycle bundle. These gates require a full Application sync; selective sync skips hooks. No current live DEV execution is claimed.
 
 ArgoCD manages:
 

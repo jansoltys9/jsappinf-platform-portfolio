@@ -10,6 +10,8 @@ The goal is to demonstrate production-like thinking without overengineering the 
 
 The current platform focuses on one main development environment.
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+
 ```text
 envs/dev/infra-next
 ```
@@ -25,12 +27,12 @@ External Secrets Operator
 AWS Secrets Manager
 RDS PostgreSQL
 cert-manager
-ingress-nginx
+ALB and Gateway API
 Route 53 DNS
 ECR
 monitoring
 optional Karpenter
-CloudFront + AWS WAF design
+CloudFront + AWS WAF infrastructure and previously validated cutover
 ```
 
 This environment is designed to be rebuilt and destroyed frequently to control cost.
@@ -325,9 +327,9 @@ This prevents accidental reuse of dev credentials in stage or prod-sim.
 
 ## DNS and Public Routing by Environment
 
-The current lab model may expose individual services through separate hostnames because it is useful for learning, testing and troubleshooting.
+The earlier lab model exposed individual service hostnames for testing. Current source uses app.dev for the UI and api.dev with service paths; the single-host examples below remain future alternatives.
 
-Current lab/debug model:
+Previous lab/debug model:
 
 ```text
 ui.jsapp365.com
@@ -500,4 +502,4 @@ single dev EKS lab
   -> lightweight landing-zone-style standards
 ```
 
-This demonstrates that the platform is not only a working dev environment, but also has a clear direction toward production-like structure.
+The previously validated dev environment is currently OFF; the multi-environment and account model remains a planned direction.

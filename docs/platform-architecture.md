@@ -24,6 +24,8 @@ The earlier ingress-nginx architecture remains part of the project history but i
 
 ## Architecture Status
 
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+
 ### Implemented and validated
 
 ```text
@@ -57,13 +59,14 @@ CloudFront and AWS WAF infrastructure and cutover workflow validated
 Cognito groups and custom API scopes validated
 ```
 
-### Application integration planned
+### Source implementation and remaining acceptance
+
+UI login/callback, backend JWT verification and scope/group authorization are implemented in source. Live acceptance of the current source remains pending. D01 source/integration/local validation and C01 immutable lifecycle controls are implemented; live acceptance/execution of those changes is not claimed.
+
+Remaining validation and evolution:
 
 ```text
-Cognito login in the UI
-backend JWT middleware
-scope and group authorization
-final path-based app and API routing
+live acceptance of current authentication and session hardening
 long-running CloudFront and WAF exposure
 additional RabbitMQ consumers and business-event flows
 retry and dead-letter queue policies
@@ -264,6 +267,8 @@ Internet
 
 The AWS Load Balancer Controller integrates Kubernetes Gateway API resources with an AWS Application Load Balancer.
 
+Gateway and HTTPRoute resources describe routing configuration; the AWS Load Balancer Controller reconciles that configuration into the ALB. They are not additional network hops in the request path.
+
 Responsibility split:
 
 ```text
@@ -271,7 +276,7 @@ Terraform:
   IAM, IRSA, networking and controller prerequisites
 
 Helm:
-  reusable Service and route configuration shape
+  reusable Service packaging; current HTTPRoutes are GitOps manifests
 
 GitOps:
   Gateway, HTTPRoute, hostnames and environment-specific paths
@@ -282,7 +287,7 @@ Application:
 
 ---
 
-# 4. Target Public Routing
+# 4. Configured Public Routing
 
 The earlier development model exposed individual service hostnames.
 
@@ -295,7 +300,7 @@ order service hostname
 
 This remains useful for debugging but is not the preferred final public model.
 
-Target routing:
+Current source routing (previously validated; DEV is now OFF):
 
 ```text
 app.dev.jsapp365.com
@@ -311,7 +316,7 @@ api.dev.jsapp365.com/orders
   order-service
 ```
 
-An acceptable alternative UI hostname is:
+A possible future alternative UI hostname is:
 
 ```text
 ui.dev.jsapp365.com
@@ -401,6 +406,8 @@ ArgoCD reconciles Kubernetes desired state.
 
 Terraform does not manage normal application Deployments.
 
+Source or artifact readiness, image publication, GitOps version selection and live promotion are separate evidence states. The committed release-preparation record retains historical pre-lockdown image selections and does not prove that newer images exist or were promoted. DEV is OFF; this document claims no currently running application versions.
+
 ---
 
 # 7. Secrets Architecture
@@ -484,6 +491,8 @@ OAuth scopes
 
 The application uses Amazon RDS for PostgreSQL.
 
+D01 source implementation, canonical integration and local validation are complete; live runtime acceptance has not yet been performed. The source requires verified PostgreSQL TLS: the reviewed RDS CA bundle is distributed through Secrets Manager and External Secrets into a separate mounted CA Secret, Node clients verify the server certificate, Lambda clients verify certificates and hostnames, and lifecycle Jobs use `sslmode=verify-full`. Missing or invalid CA trust fails closed.
+
 Logical application separation:
 
 ```text
@@ -502,7 +511,7 @@ Service-specific database users have dedicated schema permissions.
 
 The `ui` schema and `ui_user` database identity are provisioned by the Lambda as part of the standardized service database contract.
 
-No UI-specific application tables or seed data are currently claimed as implemented.
+The UI session table `ui.http_sessions` and its indexes are implemented in source and included in C01 migrations. There is no UI fixture seed.
 
 Database responsibilities are separated.
 
@@ -516,15 +525,9 @@ service credentials
 Secrets Manager entries
 ```
 
-Application seed jobs create:
+Application migration Jobs own tables, indexes and order data structures. Separate DEV seed Jobs insert fixture users and catalog products; there is no order or UI fixture seeding.
 
-```text
-tables
-indexes
-initial users
-initial products
-order data structures
-```
+C01 implements immutable, checksum-identified migrations and DEV seeds generated deterministically from JSAPP SQL. GitOps runs migrations, DEV fixture seeds and completion markers in order; each workload has a PreSync gate for the exact lifecycle bundle. These gates require a full Application sync; selective sync skips hooks. No current live DEV execution is claimed.
 
 This separation keeps database identity and privilege provisioning distinct from application schema and seed-data lifecycle.
 
@@ -545,7 +548,7 @@ product-service
 order-service
 ```
 
-The distinction is intentional: the UI database identity is provisioned, while a UI-specific table or seed-data workflow is not currently documented as validated.
+The UI database identity belongs to the provisioner; its session table belongs to application migrations. Source implementation does not establish current live DEV execution.
 
 ---
 
@@ -591,7 +594,7 @@ groups
 custom scopes
 ```
 
-Planned application integration:
+Application integration implemented in source (current-source live acceptance pending):
 
 ```text
 UI login and callback
@@ -644,6 +647,8 @@ Email should not be the primary identity key because it may change.
 A separate local LDAP or custom token-issuing authentication service is not part of the current target architecture.
 
 External corporate identity may be integrated later through Cognito federation using OIDC or SAML without changing the application token-validation boundary.
+
+B03 session/request hardening is implemented in source, including origin checks, explicit proxy trust and process-local session invalidation. B03b cross-replica revocation remains deferred: concurrent refresh/logout across replicas or a failed session deletion can leave credentials usable elsewhere until expiry or invalidation.
 
 ---
 
@@ -714,6 +719,8 @@ consumer of the product-service.order-created queue
 
 The core publisher-to-consumer application flow is implemented and validated.
 
+That runtime validation is historical. Order event publication is best effort after the database commit, and the product consumer validates/logs/acknowledges the event without updating stock. This is not a transactional outbox or a durable business-processing guarantee.
+
 Future enhancements include:
 
 ```text
@@ -730,7 +737,7 @@ failure and recovery testing
 
 # 11. Capacity Architecture
 
-The baseline application runs on managed EKS nodes.
+When DEV runtime is enabled, the baseline application runs on managed EKS nodes.
 
 Karpenter provides optional dynamic capacity.
 
@@ -870,9 +877,8 @@ separate persistent and ephemeral Terraform states
 Remaining evolution:
 
 ```text
-clean app and API public routing
 long-running CloudFront and AWS WAF edge exposure
-Cognito integration into the UI and backend services
+live acceptance of current Cognito UI/backend integration and session hardening
 additional RabbitMQ events and consumers
 formal retry and dead-letter queue policies
 automated database credential rotation
@@ -992,7 +998,7 @@ key management
 organization and account hierarchy
 ```
 
-AWS remains the first complete reference implementation.
+AWS remains the first reference implementation, with current-source live acceptance still pending.
 
 Azure and Google Cloud remain planned development-platform equivalents and are not presented as implemented.
 

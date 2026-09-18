@@ -1,16 +1,18 @@
 # Edge Security – CloudFront and AWS WAF
 
-This document describes the planned edge security direction for the JSAPPINF platform.
+This document describes the implemented edge security source and remaining routing proposals for the JSAPPINF platform.
 
-The goal is to add a production-like security layer in front of the Kubernetes ingress stack without breaking the existing working NLB and ingress-nginx model.
+CloudFront and AWS WAF integration with an ALB origin was previously validated. NLB and ingress-nginx belong to an earlier platform iteration.
+
+As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
 
 ---
 
 ## Current Exposure Model
 
-The current lab environment exposes applications through ingress-nginx behind an AWS Network Load Balancer.
+Current source configures `app.dev.jsapp365.com` for the UI and `api.dev.jsapp365.com/users`, `/products` and `/orders` through ALB and Gateway API. These are configured routes, not a claim of current live availability.
 
-Current lab/debug routing model:
+Previous lab/debug routing model:
 
 ```text
 ui.jsapp365.com
@@ -45,7 +47,7 @@ jsapp365.com/api/orders
   -> order-service
 ```
 
-Target dev model:
+Alternative future single-host dev proposal (the current source uses app.dev and api.dev as described above):
 
 ```text
 dev.jsapp365.com
@@ -76,9 +78,7 @@ ui-service.ui-service.svc.cluster.local
 
 ## Why CloudFront + AWS WAF
 
-The current ingress-nginx controller is exposed through a Network Load Balancer.
-
-AWS WAF is not attached directly to the NLB in this design. Instead, AWS WAF is attached to CloudFront.
+The current edge source uses an ALB origin. AWS WAF is associated with CloudFront.
 
 Target edge architecture:
 
@@ -86,13 +86,11 @@ Target edge architecture:
 Internet
   -> CloudFront
   -> AWS WAF Web ACL
-  -> existing NLB
-  -> ingress-nginx
-  -> Kubernetes Ingress
+  -> Application Load Balancer (configured through Gateway API / HTTPRoute)
   -> JSAPP services
 ```
 
-This allows the platform to keep the current Kubernetes ingress architecture while adding an edge security layer.
+This reflects the ALB/Gateway API integration already implemented in source.
 
 ---
 
@@ -158,7 +156,7 @@ Recommended phases:
 5. Cut over DNS only after validation.
 ```
 
-The first implementation should avoid immediate public DNS cutover.
+This describes the staged cutover approach; the July 2026 cutover was previously validated.
 
 ---
 
@@ -167,15 +165,14 @@ The first implementation should avoid immediate public DNS cutover.
 Current project status:
 
 ```text
-CloudFront + WAF design documented
+CloudFront + WAF infrastructure implemented
 edge-waf component registered
-Terraform skeleton created
-root wiring added in disabled mode
-Terraform plan validated with edge_waf enabled
-apply/testing intentionally deferred
+ALB-origin integration previously validated
+DNS cutover workflow previously validated
+DEV runtime currently OFF
 ```
 
-This means the design and Terraform structure are ready, but the actual CloudFront distribution and WAF are not required to run continuously in the cost-aware dev environment.
+Historical infrastructure and cutover validation does not imply current live operation. Edge exposure is not kept continuously active in the cost-aware dev environment.
 
 ---
 
@@ -213,7 +210,6 @@ WAF metrics review
 optional WAF logging
 admin endpoint separation
 stronger origin TLS model
-possible migration from NLB/ingress-nginx to ALB-based model if needed
 ```
 
 ---
