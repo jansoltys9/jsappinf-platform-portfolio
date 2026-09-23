@@ -1,3 +1,5 @@
+> **Status update — 2026-09-22:** [Phase 1 candidate and validation boundaries](docs/phase1-implementation-status.md). Historical DEV evidence is distinct from the implemented but undeployed multi-environment candidate. STAGE/PROD are not deployed. Landing Zone, Azure and GCP JSAPPINF remain optional/future targets.
+
 # JSAPPINF – AWS EKS DevOps Platform Lab
 
 JSAPPINF is a production-like DevOps platform lab built on AWS EKS.
@@ -456,9 +458,9 @@ This keeps the project practical while still demonstrating production-like capac
 
 ## Multi-Environment Direction
 
-The current implementation focuses on a dev environment.
+The Phase 1 candidate implements one reusable AWS composition at `stacks/aws/platform` with explicit dev/stage/prod tfvars and isolated backend templates. It has not been deployed from the new root; historical DEV evidence is not proof of current live state.
 
-Planned evolution:
+Implemented candidate profiles:
 
 ```text
 dev:
@@ -467,19 +469,25 @@ dev:
 stage:
   integration validation profile
 
-prod-sim:
-  production-like simulation profile
+prod:
+  production candidate profile; not deployed or certified
 ```
 
-Future direction:
+Implemented candidate boundaries:
 
 ```text
 separate backend keys
 separate tfvars
 environment-specific naming and tags
+environment/account/region/backend selected independently
+```
+
+Target / proposed direction:
+
+```text
 future AWS Organization account separation
-NonProd and ProdSim account boundaries
-light landing-zone-style standards
+optional NonProd and Prod account boundaries
+optional light landing-zone-style standards
 ```
 
 The goal is not to overengineer the lab, but to show a realistic path from a single dev platform toward multi-environment and account-aware architecture.

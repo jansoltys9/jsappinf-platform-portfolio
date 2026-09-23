@@ -1,3 +1,5 @@
+> Read [Phase 1 status](phase1-implementation-status.md) first. CURRENT / VALIDATED refers only to dated historical DEV evidence. The reusable multi-environment code is an IMPLEMENTED CANDIDATE / NOT DEPLOYED. STAGE/PROD, Landing Zone and Azure/GCP live operation are not validated; any foundation/cross-cloud roadmap below is TARGET / PROPOSED and not a Phase 1 dependency.
+
 # JSAPPINF Platform Architecture
 
 ## Purpose
@@ -222,8 +224,8 @@ The Lambda does not own application tables, indexes or seed data.
 Principal Terraform state boundaries:
 
 ```text
-envs/dev/infra-next
-  main development platform
+stacks/aws/platform
+  reusable DEV/STAGE/PROD candidate composition (not deployed from this root)
 
 envs/dev/identity-cognito
   persistent Cognito identity infrastructure

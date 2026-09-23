@@ -1,6 +1,8 @@
+> Read [Phase 1 status](phase1-implementation-status.md) first. CURRENT / VALIDATED refers only to dated historical DEV evidence. The reusable multi-environment code is an IMPLEMENTED CANDIDATE / NOT DEPLOYED. STAGE/PROD, Landing Zone and Azure/GCP live operation are not validated; any foundation/cross-cloud roadmap below is TARGET / PROPOSED and not a Phase 1 dependency.
+
 # Multi-Environment and AWS Account Strategy
 
-This document describes the planned evolution of the JSAPPINF platform from a single dev environment into a multi-environment and lightweight account-aware AWS architecture.
+This document describes the Phase 1 multi-environment candidate and its future account-aware AWS evolution.
 
 The goal is to demonstrate production-like thinking without overengineering the lab.
 
@@ -8,13 +10,11 @@ The goal is to demonstrate production-like thinking without overengineering the 
 
 ## Current State
 
-The current platform focuses on one main development environment.
+The reviewed Phase 1 candidate has one reusable AWS platform composition for explicit DEV/STAGE/PROD inputs. It is not deployed. Historical DEV evidence remains the only runtime evidence.
 
 As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
 
-```text
-envs/dev/infra-next
-```
+The current candidate composition root is `stacks/aws/platform`. The former `envs/dev/infra-next` path is retained only in source history and migration evidence; it is not the active composition root.
 
 The dev environment supports:
 
@@ -39,14 +39,14 @@ This environment is designed to be rebuilt and destroyed frequently to control c
 
 ---
 
-## Target Environment Model
+## Implemented Candidate Environment Model
 
-The planned environment model is:
+The undeployed Phase 1 candidate model is:
 
 ```text
 dev
 stage
-prod-sim
+prod
 ```
 
 The goal is not to create real production immediately, but to show a realistic path toward environment separation.
@@ -105,7 +105,7 @@ The stage environment should be less experimental than dev.
 
 ---
 
-## prod-sim Environment
+## prod Environment
 
 Purpose:
 
@@ -117,9 +117,9 @@ stricter defaults
 fewer experiments
 ```
 
-This is not real production, but it demonstrates production-style separation and platform discipline.
+This is an undeployed production candidate profile, not proof of a production environment or production certification.
 
-Possible prod-sim behavior:
+Candidate prod behavior:
 
 ```text
 deletion protection enabled for selected resources
@@ -141,13 +141,13 @@ Example:
 
 ```text
 dev:
-  key = envs/dev/infra-next/terraform.tfstate
+  key = platform/dev/terraform.tfstate
 
 stage:
-  key = envs/stage/infra-next/terraform.tfstate
+  key = platform/stage/terraform.tfstate
 
-prod-sim:
-  key = envs/prod-sim/infra-next/terraform.tfstate
+prod:
+  key = platform/prod/terraform.tfstate
 ```
 
 This avoids accidental state overlap and supports safer environment lifecycle management.
@@ -178,40 +178,24 @@ Example naming:
 ```text
 jsappinf-dev
 jsappinf-stage
-jsappinf-prod-sim
+jsappinf-prod
 ```
 
 ---
 
-## Suggested Folder Direction
+## Implemented Candidate Folder Direction
 
 A simple and readable structure could be:
 
 ```text
-envs/
-  dev/
-    infra-next/
-      backend.hcl
-      terraform.tfvars
-      main.tf
-      variables.tf
-
-  stage/
-    infra-next/
-      backend.hcl
-      terraform.tfvars
-      main.tf
-      variables.tf
-
-  prod-sim/
-    infra-next/
-      backend.hcl
-      terraform.tfvars
-      main.tf
-      variables.tf
+stacks/aws/platform/             # one reusable composition
+env/aws/dev.tfvars               # explicit environment inputs
+env/aws/stage.tfvars
+env/aws/prod.tfvars
+backends/aws/*.platform.hcl.example
 ```
 
-The first implementation can reuse the same Terraform composition with different environment-specific inputs.
+The implemented candidate reuses the same Terraform composition with different environment-specific inputs and isolated backend templates. Environment, AWS account, AWS region and backend identity remain independent selections.
 
 ---
 
@@ -237,7 +221,7 @@ stage:
   optional Karpenter validation
   Edge WAF optional
 
-prod-sim:
+prod:
   stronger defaults
   selected deletion protection
   Edge WAF enabled
@@ -318,10 +302,10 @@ Example paths:
 ```text
 jsappinf/dev/app/db/ui-service
 jsappinf/stage/app/db/ui-service
-jsappinf/prod-sim/app/db/ui-service
+jsappinf/prod/app/db/ui-service
 ```
 
-This prevents accidental reuse of dev credentials in stage or prod-sim.
+This prevents accidental reuse of dev credentials in stage or prod.
 
 ---
 
@@ -473,18 +457,13 @@ Production-like behavior can be demonstrated without keeping all expensive compo
 
 ## Implementation Roadmap
 
-Recommended order:
+Phase 1 disposition and later order:
 
 ```text
-1. Document environment model.
-2. Define dev/stage/prod-sim profiles.
-3. Separate backend keys.
-4. Create stage tfvars.
-5. Create prod-sim tfvars.
-6. Standardize naming and tags.
-7. Standardize secret paths.
-8. Decide account separation timing.
-9. Add lightweight Landing Zone baseline.
+1. IMPLEMENTED CANDIDATE / NOT DEPLOYED: one composition, dev/stage/prod tfvars, isolated backend templates, naming/tags and environment-specific secret paths.
+2. ACTIVATION GATE: recover and reconcile authoritative DEV backend, state and historic inputs; implement the fail-closed environment/account/region/backend selector; review an authorized real plan.
+3. TARGET / PROPOSED: activate and accept DEV, then qualify STAGE and PROD independently with their own account, region, backend and runtime evidence.
+4. TARGET / OPTIONAL: decide whether account governance justifies a lightweight Landing Zone. It is not a Phase 1 prerequisite.
 ```
 
 ---
@@ -495,11 +474,11 @@ The multi-environment strategy shows a realistic evolution path:
 
 ```text
 single dev EKS lab
-  -> dev/stage/prod-sim environments
+  -> one reusable dev/stage/prod candidate composition
   -> separate state and configuration
   -> environment-specific secrets and DNS
   -> future AWS account separation
   -> lightweight landing-zone-style standards
 ```
 
-The previously validated dev environment is currently OFF; the multi-environment and account model remains a planned direction.
+The previously validated DEV environment is recorded as OFF in dated source evidence. The multi-environment structure is an IMPLEMENTED CANDIDATE / NOT DEPLOYED; environment activation, account bindings and live acceptance remain TARGET / PROPOSED.
