@@ -4,7 +4,7 @@ This document describes the implemented edge security source and remaining routi
 
 CloudFront and AWS WAF integration with an ALB origin was previously validated. NLB and ingress-nginx belong to an earlier platform iteration.
 
-As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+The platform uses one reusable AWS composition for DEV, STAGE and PROD. The October 2 operational run covered infrastructure startup, GitOps delivery and controlled teardown; see [current platform status](platform-status.md) and the [operating model](platform-operations.md).
 
 ---
 
@@ -12,7 +12,7 @@ As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime des
 
 Current source configures `app.dev.jsapp365.com` for the UI and `api.dev.jsapp365.com/users`, `/products` and `/orders` through ALB and Gateway API. These are configured routes, not a claim of current live availability.
 
-Previous lab/debug routing model:
+Previous development routing model:
 
 ```text
 ui.jsapp365.com

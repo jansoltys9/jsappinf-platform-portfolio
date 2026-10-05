@@ -1,10 +1,10 @@
 # Infrastructure Overview
 
-JSAPPINF is a production-like DevOps platform lab built on AWS EKS.
+JSAPPINF is a production-like DevOps platform built on AWS EKS.
 
 The platform is designed to demonstrate infrastructure provisioning, Kubernetes platform setup, GitOps deployment, secure secret delivery, ingress, TLS, database integration, and operational troubleshooting.
 
-As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+The platform uses one reusable AWS composition for DEV, STAGE and PROD. The October 2 operational run covered infrastructure startup, GitOps delivery and controlled teardown; see [current platform status](platform-status.md) and the [operating model](platform-operations.md).
 
 ---
 
@@ -152,7 +152,7 @@ Current status:
 ```text
 CloudFront and AWS WAF infrastructure implemented
 ALB-origin integration and DNS cutover previously validated
-DEV runtime currently OFF; no current live acceptance implied
+Optional edge layer; not required for the baseline ALB deployment
 ```
 
 ---

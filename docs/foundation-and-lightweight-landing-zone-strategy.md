@@ -1,5 +1,3 @@
-> Read [Phase 1 status](phase1-implementation-status.md) first. CURRENT / VALIDATED refers only to dated historical DEV evidence. The reusable multi-environment code is an IMPLEMENTED CANDIDATE / NOT DEPLOYED. STAGE/PROD, Landing Zone and Azure/GCP live operation are not validated; any foundation/cross-cloud roadmap below is TARGET / PROPOSED and not a Phase 1 dependency.
-
 # Foundation and Lightweight Landing Zone Strategy
 
 This document describes the foundation-layer direction for the JSAPPINF platform.
@@ -115,7 +113,7 @@ Transit Gateway
 central DNS and inspection layers
 ```
 
-Those are valuable in larger organizations, but they are not always needed for an early-stage platform lab.
+Those are valuable in larger organizations, but they are not always needed for an early-stage platform.
 
 For this project, implementing all of that immediately would create unnecessary complexity.
 
@@ -381,7 +379,7 @@ Backend services should be exposed through path-based routing:
 /api/orders
 ```
 
-Individual service subdomains may exist temporarily for lab/debugging, but they should not be the long-term production-like public model.
+Individual service subdomains may exist temporarily for development, but they should not be the long-term production-like public model.
 
 ---
 

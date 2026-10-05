@@ -1,5 +1,3 @@
-> Read [Phase 1 status](phase1-implementation-status.md) first. CURRENT / VALIDATED refers only to dated historical DEV evidence. The reusable multi-environment code is an IMPLEMENTED CANDIDATE / NOT DEPLOYED. STAGE/PROD, Landing Zone and Azure/GCP live operation are not validated; any foundation/cross-cloud roadmap below is TARGET / PROPOSED and not a Phase 1 dependency.
-
 # Cross-Cloud Platform Equivalence Strategy
 
 ## Purpose
@@ -22,7 +20,7 @@ JSAPPINF Cross-Cloud Dev Platform Reference Architecture
 
 The current implementation is a close-to-production AWS development platform.
 
-As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads.
+The platform uses one reusable AWS composition for DEV, STAGE and PROD. The October 2 operational run covered infrastructure startup, GitOps delivery and controlled teardown; see [current platform status](platform-status.md) and the [operating model](platform-operations.md).
 
 It includes:
 
@@ -194,7 +192,7 @@ Some components can remain substantially consistent across all three clouds.
 | Dashboards | Grafana | Provider-native dashboards |
 | Logging | Loki or OpenSearch | Provider-native logging services |
 | Tracing | Tempo and OpenTelemetry | Provider-native tracing services |
-| Policy enforcement | Open Policy Agent / Gatekeeper or Kyverno | Provider-native policy services |
+| Policy enforcement | Gatekeeper or Kyverno | Provider-native policy services |
 | Certificate automation | cert-manager | Provider certificate services |
 | PostgreSQL on Kubernetes | PostgreSQL operator such as CloudNativePG | Managed PostgreSQL services |
 | Infrastructure provisioning | Terraform or OpenTofu | Provider-native IaC systems |

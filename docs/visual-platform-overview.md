@@ -1,12 +1,10 @@
-> Read [Phase 1 status](phase1-implementation-status.md) first. CURRENT / VALIDATED refers only to dated historical DEV evidence. The reusable multi-environment code is an IMPLEMENTED CANDIDATE / NOT DEPLOYED. STAGE/PROD, Landing Zone and Azure/GCP live operation are not validated; any foundation/cross-cloud roadmap below is TARGET / PROPOSED and not a Phase 1 dependency.
-
 # JSAPP Platform Visual Overview
 
 This page provides a visual summary of the JSAPP platform architecture, repository model, delivery process, ownership boundaries and application landscape.
 
 The diagrams combine validated platform capabilities with clearly identified target-state and work-in-progress areas.
 
-As of 2026-09-17, DEV runtime is intentionally OFF for cost control. Runtime descriptions below refer to source configuration or previously validated capabilities, not currently running workloads. The images are conceptual reference views; their labels do not establish acceptance of newer source changes.
+The platform uses one reusable AWS composition for DEV, STAGE and PROD. The October 2 operational run covered infrastructure startup, GitOps delivery and controlled teardown; see [current platform status](platform-status.md) and the [operating model](platform-operations.md). The images are conceptual reference views; their labels do not establish acceptance of newer source changes.
 
 ## Infrastructure Overview
 

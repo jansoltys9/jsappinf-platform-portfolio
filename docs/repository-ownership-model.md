@@ -299,7 +299,7 @@ jsappinf-gitops change
 
 ## Portfolio Summary
 
-The repository ownership model describes a previously validated EKS lab and its source responsibilities. DEV runtime is currently OFF for cost control.
+The repository ownership model describes a previously validated EKS platform and its source responsibilities. DEV runtime is currently OFF for cost control.
 
 The key design idea is:
 
